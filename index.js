@@ -2,7 +2,6 @@ const express = require('express')
 const app = express();
 const bodyParser = require('body-parser')
 const morgan = require('morgan')
-const jwt = require('jsonwebtoken')
 const port = 3001
 let persons = [
     {
@@ -81,54 +80,66 @@ app.post('/api/persons', (request, response) => {
     let id = Math.round(Math.random() * 100)
     let name = request.body.name
     let number = request.body.number
-
+    let cont = 0
     // 1.6: Backend de la agenda telefonica, paso 6
-    if (!request.body.name || !request.body.number) {
+    if (!name || !number) {
         return response.status(400).json({
             error: 'Falta el nombre o el número'
         })
     }
 
-    persons.push({ id, name, number })
-    response.json(persons)
+    persons.find(element => {
+        if (name === element.name) {
+            cont++
+        }
+    });
+
+    if (cont > 0) {
+        return response.status(400).json({
+            error: 'El nombre ya existe en la agenda'
+        })
+     } else {
+        persons.push({ id, name, number })
+        response.json(persons)
+    }
 })
 
 // 1.7: Backend de la agenda telefonica, paso 7
 
 app.get('/health', (request, response) => {
-    const healthResponse = {
-        statusCode: 200,
-        message: 'ok'
-    }
+            const healthResponse = {
+                statusCode: 200,
+                message: 'ok'
+            }
 
-    response.json(healthResponse)
-})
+            response.json(healthResponse)
+        })
 
 // 1.8: Backend de la agenda telefonica, paso 8
 
 app.post('/api/login', (request, response) => {
-    const user = {id: 3}
-    const token = jwt.sign({user}, 'my_secret_key')
-    response.json({
-        token
-    })
-})
+            const user = { id: 3 }
+            const token = jwt.sign({ user }, 'my_secret_key')
+            response.json({
+                token
+            })
+        })
 
 app.get('/api/protected', ensureToken, (request, response) => {
-    response.json({
-        text: 'protected'
-    })
-})
+            response.json({
+                text: 'protected'
+            })
+        })
 
 function ensureToken(request, response, next) {
-    request.headers['authorization']
-    console.log(bearerHeader)
-    if (typeof bearerheader !== 'undefined') {
-        const bearer = bearerHeader.split(" ")
-        const bearerToken = bearer[1]
-        request.token = bearerToken
-        next()
-    } else {
-        response.sendStatus(403)
-    }
-}
+                request.headers['authorization']
+                console.log(bearerHeader)
+                if (typeof bearerheader !== 'undefined') {
+                    const bearer = bearerHeader.split(" ")
+                    const bearerToken = bearer[1]
+                    request.token = bearerToken
+                    next()
+                } else {
+                    response.sendStatus(403)
+                }
+            }
